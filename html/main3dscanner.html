@@ -1,0 +1,578 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>main3dscanner</title><meta name="generator" content="MATLAB 8.3"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2015-04-18"><meta name="DC.source" content="main3dscanner.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#3">Intro...</a></li><li><a href="#4">get the images or simulate one...</a></li><li><a href="#5">calculate the camera matrises and give the dimenssion (assumed fixed)</a></li><li><a href="#6">Convert the Images into Silhouettes</a></li><li><a href="#7">Work out the space occupied by the scene</a></li><li><a href="#8">Create a Voxel Array</a></li><li><a href="#9">Now Start the active Carving</a></li><li><a href="#11">Get real values</a></li><li><a href="#13">Plot point-cloud</a></li><li><a href="#14">Final Result</a></li><li><a href="#15">Rotate automatic around the object</a></li><li><a href="#16">The End..</a></li></ul></div><pre class="codeinput"><span class="keyword">function</span> [ voxels ] = main3dscanner(mode)
+</pre><pre class="codeinput"><span class="comment">% main3dscanner a script to deal and process 3dscanner data</span>
+<span class="comment">% Copyright : [YY] 2015</span>
+<span class="comment">% mechatronics Hims /Syria.</span>
+</pre><h2>Intro...<a name="3"></a></h2><pre class="language-matlab">&#1607;&#1584;&#1575; &#1575;&#1604;&#1605;&#1604;&#1601; &#1610;&#1581;&#1578;&#1608;&#1610; &#1593;&#1604;&#1609; &#1570;&#1604;&#1610;&#1575;&#1578; &#1573;&#1593;&#1575;&#1583;&#1577; &#1575;&#1604;&#1576;&#1606;&#1575;&#1569; &#1605;&#1606; &#1575;&#1604;&#1589;&#1608;&#1585; &#1575;&#1604;&#1605;&#1571;&#1582;&#1608;&#1584;&#1577; &#1604;&#1580;&#1587;&#1605; &#1593;&#1604;&#1609; &#1591;&#1575;&#1608;&#1604;&#1577;
+&#1583;&#1608;&#1575;&#1585;&#1577; &#1608;&#1581;&#1610;&#1579; &#1571;&#1606; &#1575;&#1604;&#1575;&#1581;&#1583;&#1575;&#1579;&#1610;&#1575;&#1578; &#1605;&#1593;&#1604;&#1608;&#1605;&#1577; &#1587;&#1604;&#1601;&#1575;&#1611; &#1601;&#1610;&#1605;&#1603;&#1606; &#1581;&#1587;&#1575;&#1576; &#1575;&#1604;&#1605;&#1589;&#1601;&#1608;&#1601;&#1575;&#1578; &#1575;&#1604;&#1604;&#1575;&#1586;&#1605;&#1577; &#1576;&#1583;&#1602;&#1577;
+&#1579;&#1605; &#1593;&#1576;&#1585; &#1582;&#1608;&#1575;&#1585;&#1586;&#1605;&#1610;&#1577; " &#1575;&#1604;&#1588;&#1603;&#1604; &#1605;&#1606; &#1575;&#1604;&#1575;&#1591;&#1575;&#1585;&#1575;&#1578; " &#1610;&#1605;&#1603;&#1606; &#1575;&#1587;&#1602;&#1575;&#1591; &#1575;&#1604;&#1606;&#1602;&#1575;&#1591; &#1575;&#1604;&#1575;&#1601;&#1578;&#1585;&#1575;&#1590;&#1610;&#1577;
+&#1608;&#1575;&#1604;&#1606;&#1581;&#1578; &#1604;&#1603;&#1604; &#1575;&#1604;&#1589;&#1608;&#1585; &#1608;&#1605;&#1575; &#1578;&#1576;&#1602;&#1609; &#1610;&#1606;&#1578;&#1605;&#1610; &#1581;&#1603;&#1605;&#1575;&#1611; &#1604;&#1604;&#1580;&#1587;&#1605; , &#1578;&#1586;&#1610;&#1583; &#1575;&#1604;&#1583;&#1602;&#1577; &#1591;&#1576;&#1593;&#1575;&#1611; &#1576;&#1586;&#1610;&#1575;&#1583;&#1577;
+&#1575;&#1604;&#1589;&#1608;&#1585; &#1608;&#1576;&#1586;&#1610;&#1575;&#1583;&#1577; &#1603;&#1579;&#1575;&#1601;&#1577; &#1575;&#1604;&#1606;&#1602;&#1575;&#1591; , &#1608;&#1604;&#1603;&#1606; &#1607;&#1584;&#1575; &#1610;&#1578;&#1591;&#1604;&#1576; &#1584;&#1575;&#1603;&#1585;&#1577;
+</pre><pre class="codeinput">close <span class="string">all</span>
+import <span class="string">spacecarving.*</span>;
+
+<span class="comment">% prase inputs</span>
+<span class="keyword">if</span> nargin&lt;1
+    mode=1; <span class="comment">% slow</span>
+<span class="keyword">elseif</span> strcmp(mode,<span class="string">'slow'</span>)
+    mode=1;
+<span class="keyword">elseif</span> strcmp(mode,<span class="string">'fast'</span>)
+    mode=0;
+<span class="keyword">else</span>
+    error(<span class="string">'your input 4 cals mode invalid:please choose ,fast or slow .'</span>)
+<span class="keyword">end</span>
+</pre><h2>get the images or simulate one...<a name="4"></a></h2><pre class="codeinput">[ im5 ] = simaqmec( );
+<span class="comment">%[im5 ,time]=fpropose3(48,2,2.99);</span>
+<span class="comment">% 4D array of images.</span>
+<span class="keyword">for</span> y = 1:size(im5,4)
+    im5(:,:,:,y) = insertText(im5(:,:,:,y), [0.92*size(im5,2) 0], y,<span class="string">'FontSize'</span>, 18);
+<span class="keyword">end</span>
+<span class="comment">% care here cause the segmentation could be affected.</span>
+<span class="comment">% however you could commit it away.</span>
+figure;
+montage(im5)
+</pre><pre class="codeoutput">Warning: Image is too big to fit on screen; displaying at 25% 
+</pre><img vspace="5" hspace="5" src="main3dscanner_01.png" alt=""> <h2>calculate the camera matrises and give the dimenssion (assumed fixed)<a name="5"></a></h2><p>for the can:r=28</p><pre class="codeinput"><span class="comment">%th2=38.15; % in degree</span>
+<span class="comment">%for jar1 r=25,z=21,th2=40.</span>
+<span class="comment">% th2=35;</span>
+th2=44;
+<span class="comment">% r=37.5;</span>
+r=22;   <span class="comment">% in cientemeter</span>
+<span class="comment">% put wherever the matrix are....</span>
+s=load(<span class="string">'K4cam.mat'</span>);
+camobject=s.k4lapcam ;<span class="comment">%k4lapcam;</span>
+[ cams ] = generatec43d( im5,th2,r,camobject );
+</pre><h2>Convert the Images into Silhouettes<a name="6"></a></h2><pre class="codeinput"><span class="comment">% figure;</span>
+<span class="comment">% imshow(cams(1).Image);</span>
+<span class="comment">% h=imrect;</span>
+<span class="comment">% p = wait(h);</span>
+<span class="comment">% p=ceil(p);</span>
+
+<span class="comment">% p=roipoly(cams(1).Image);</span>
+<span class="comment">% close(gcf)</span>
+  figure;
+<span class="keyword">for</span> c=1:numel(cams)
+    cams(c).Silhouette = createMasksalt1( cams(c).Image );<span class="comment">%segment3( cams(c).Image,p );</span>
+    imshow(cams(c).Silhouette)
+    drawnow
+<span class="keyword">end</span>
+    close(gcf)
+<span class="comment">% makeFullAxes( gcf );</span>
+</pre><h2>Work out the space occupied by the scene<a name="7"></a></h2><p>Initially we have no idea where to look for the model. We will assume that the model lies in the space spanned by the cameras and their principal view directions. We then perform a very low-res space-carve using all the cameras to narrow down exactly where the object is. This isn't foolproof, but good enough for this demo.</p><pre class="codeinput">z=25.5;
+
+[xlim,ylim,zlim] = findmodel3( cams );
+</pre><pre class="codeoutput">save here 
+</pre><h2>Create a Voxel Array<a name="8"></a></h2><p>This creates a regular 3D grid of elements ready for carving away. The input arguments set the bounding box and the approximate number of voxels to create. Since the voxels must be cubes, the actual number generated may be a little more or less. We'll start with about six million voxels (you may need to reduce this if you don't have enough memory).</p><p>For "real world" implementations of space carving you certainly wouldn't create a uniform 3D matrix like this. OctTrees and other refinement representations give much better efficiency, both in memory and computational time.</p><pre class="codeinput">voxels = makevoxels( xlim, ylim, zlim, 3000000 );<span class="comment">% here it was 6000000 [YY].</span>
+starting_volume = numel( voxels.XData );
+
+<span class="comment">% Show the whole scene</span>
+disp(<span class="string">'If u prefer to use the gui mannully u can do it here '</span>)
+keyboard
+figure(<span class="string">'color'</span>,[1 1 1],<span class="string">'Position'</span>,[100 100 800 550]);
+showscene2(cams)
+hold <span class="string">on</span>
+p=[0 1 0];
+x=xlim(1);y=ylim(1);z=zlim(1);
+vx=diff(xlim);vy=diff(ylim);vz=diff(zlim);
+scatter3(x-(vx/8),y-(vy/8),z-(vz/8),50,[0 0 1],<span class="string">'fill'</span>)
+ver=[x y z;x+vx y z;x+vx y z+vz;x y z+vz;x y+vy z+vz;x y+vy z;x+vx y+vy z;x+vx y+vy z+vz];
+face=[1 2 3 4;1 4 5 6;1 2 7 6;2 7 8 3;6 7 8 5;5 4 3 8];
+patch(<span class="string">'Vertices'</span>,ver,<span class="string">'Faces'</span>,face,<span class="string">'CData'</span>,p,<span class="string">'Facecolor'</span>,p,<span class="keyword">...</span>
+    <span class="string">'FaceAlpha'</span>,0.9,<span class="string">'LineWidth'</span>,2);
+axis <span class="string">equal</span>;axis <span class="string">vis3d</span>
+clear <span class="string">x</span> <span class="string">y</span> <span class="string">z</span> <span class="string">vx</span> <span class="string">vy</span> <span class="string">vz</span>
+
+<span class="comment">%showscene2( cams, voxels );</span>
+drawnow()
+</pre><pre class="codeoutput">If u prefer to use the gui mannully u can do it here 
+principal point not specified, setting it to centre of image plane
+        -0.667183642295244
+        -0.303680767976939
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+        -0.500183712910226
+        -0.535884572202589
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+        -0.257035347411275
+        -0.686504808116139
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+        0.0252443196998166
+        -0.732610910175589
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+         0.303680767976939
+        -0.667183642295244
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+         0.535884572202589
+        -0.500183712910226
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+         0.686504808116139
+        -0.257035347411275
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+         0.732610910175589
+        0.0252443196998166
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+         0.667183642295244
+         0.303680767976938
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+         0.500183712910226
+         0.535884572202589
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+         0.257035347411274
+         0.686504808116139
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+       -0.0252443196998165
+         0.732610910175589
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+        -0.303680767976939
+         0.667183642295244
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+        -0.535884572202589
+         0.500183712910226
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+        -0.686504808116139
+         0.257035347411275
+         0.680179372382454
+
+principal point not specified, setting it to centre of image plane
+delete camera object
+delete camera object
+</pre><img vspace="5" hspace="5" src="main3dscanner_02.png" alt=""> <h2>Now Start the active Carving<a name="9"></a></h2><p>In this case we have 36 views (roughly every 10 degrees). For a very detailed model and if you have an automatic capture rig you would use far more - the only limit being time and disk-space. When using a computer controlled turn-table (as is done in museums) storage is the only real limitation.</p><pre class="codeinput">Waitingpro
+<span class="keyword">if</span> mode==0
+    <span class="comment">% fast processing..</span>
+nod=1/(numel(cams)+1);
+<span class="keyword">for</span> ii=1:numel(cams)
+    voxels = carve2( voxels, cams(ii) );
+    splsc.ProgressRatio=splsc.ProgressRatio+nod; <span class="comment">% add to progress bar..</span>
+<span class="keyword">end</span>
+figure(<span class="string">'Position'</span>,[100 100 700 500]);
+showsurface(voxels)
+set(gca,<span class="string">'Position'</span>,[0 0 1.4 0.95])
+axis <span class="string">off</span>
+title( <span class="string">'Result after carvings'</span> )
+
+final_volume = numel( voxels.XData );
+fprintf( <span class="string">'Final volume is %d (%1.2f%%)\n'</span>, <span class="keyword">...</span>
+    final_volume, 100 * final_volume / starting_volume )
+<span class="comment">% drawnow()</span>
+<span class="keyword">elseif</span> mode==1
+</pre><pre class="codeinput">    <span class="comment">% slow processing.</span>
+nod=1/(numel(cams)*2+1);
+<span class="keyword">for</span> ii=1:numel(cams)
+    voxels = carve2( voxels, cams(ii) );
+    splsc.ProgressRatio=splsc.ProgressRatio+nod; <span class="comment">% add to progress bar..</span>
+<span class="keyword">end</span>
+figure(<span class="string">'Position'</span>,[100 100 700 500]);
+showsurface(voxels)
+set(gca,<span class="string">'Position'</span>,[0 0 1.4 0.95])
+axis <span class="string">off</span>
+title( <span class="string">'Result after carvings'</span> )
+final_volume = numel( voxels.XData );
+fprintf( <span class="string">'Final volume is %d (%1.2f%%)\n'</span>, <span class="keyword">...</span>
+    final_volume, 100 * final_volume / starting_volume )
+drawnow()
+</pre><pre class="codeoutput">
+ans =
+
+           760.00048828125
+
+Final volume is 1097758 (36.06%)
+</pre><img vspace="5" hspace="5" src="main3dscanner_03.png" alt=""> <h2>Get real values<a name="11"></a></h2><p>We ideally want much higher resolution, but would run out of memory. Instead we can use a trick and assign real values to each voxel instead of a binary value. We do this by moving all voxels a third of a square in each direction then seeing if they get carved off. The ratio of carved to non-carved for each voxel gives its score (which is roughly equivalent to estimating how much of the voxel is inside).</p><pre class="codeinput">offset_vec = 1/3 * voxels.Resolution * [-1 0 1];
+[off_x, off_y, off_z] = meshgrid( offset_vec, offset_vec, offset_vec );
+
+num_voxels = numel( voxels.Value );
+num_offsets = numel( off_x );
+scores = zeros( num_voxels, 1 );
+<span class="keyword">for</span> jj=1:num_offsets
+    keep = true( num_voxels, 1 );
+    myvoxels = voxels;
+    myvoxels.XData = voxels.XData + off_x(jj);
+    myvoxels.YData = voxels.YData + off_y(jj);
+    myvoxels.ZData = voxels.ZData + off_z(jj);
+    <span class="keyword">for</span> ii=1:numel( cams )
+        [~,mykeep] = carve2( myvoxels, cams(ii) );
+        keep(setdiff( 1:num_voxels, mykeep )) = false;
+        splsc.ProgressRatio=splsc.ProgressRatio+<span class="keyword">...</span>
+            (nod/num_offsets); <span class="comment">% add to progress bar..</span>
+    <span class="keyword">end</span>
+    scores(keep) = scores(keep) + 1;
+<span class="keyword">end</span>
+voxels.Value = scores / num_offsets;
+figure(<span class="string">'Position'</span>,[100 100 700 500]);
+showsurface( voxels );
+set(gca,<span class="string">'Position'</span>,[-0.2 0 1.4 0.95])
+axis <span class="string">off</span>
+title( <span class="string">'Result after carvings with refinement'</span> )
+</pre><img vspace="5" hspace="5" src="main3dscanner_04.png" alt=""> <pre class="codeinput"><span class="keyword">end</span>
+</pre><h2>Plot point-cloud<a name="13"></a></h2><pre class="codeinput"><span class="comment">% hf=figure('Position',[100 100 700 500]);</span>
+<span class="comment">% hax=axes('Parent',hf); hold on; grid on;</span>
+<span class="comment">% scatter3(voxels.XData,voxels.YData,voxels.ZData,1,[1 0 0],'fill')</span>
+<span class="comment">%</span>
+<span class="comment">% xlabel('x-axis (mm)');ylabel('y-axis (mm)');zlabel('z-axis (mm)')</span>
+<span class="comment">% view(3);axis equal;</span>
+<span class="comment">% set(hax,'XAxisLocation','top','YAxisLocation','left',...</span>
+<span class="comment">%     'Ydir','reverse')</span>
+<span class="comment">% grid on</span>
+<span class="comment">% title('Reconstructed Point Cloud');</span>
+</pre><h2>Final Result<a name="14"></a></h2><p>For online galleries and the like we would colour each voxel from the image with the best view (i.e. nearest normal vector), leading to a colour 3D model. This makes zero difference to the volume estimate (which was the main purpose of the demo), but does look pretty!</p><pre class="codeinput">h=figure(<span class="string">'color'</span>,[1 1 1],<span class="keyword">...</span>
+     <span class="string">'NumberTitle'</span>,<span class="string">'off'</span>,<span class="string">'name'</span>,<span class="string">'FResult'</span>,<span class="string">'Position'</span>,[300   65   700   610]);
+
+ptch = showsurface( voxels );
+colorsurface( ptch, cams );
+set(gca,<span class="string">'Position'</span>,[-0.2 0 1.4 0.95])
+axis <span class="string">off</span>
+title( <span class="string">'Result after carvings with refinement and colour'</span> )
+rotate3d <span class="string">on</span>
+</pre><img vspace="5" hspace="5" src="main3dscanner_05.png" alt=""> <h2>Rotate automatic around the object<a name="15"></a></h2><p>for g=zlim(1):0.01:0 x=cos(g*6); y=sin(g*6); view([x,y,g]) pause(0.016) end</p><h2>The End..<a name="16"></a></h2><p>By : yasin yousif &amp; his friends.. Supervisor: Dr Yasser Khadra. Mechatronics 2015.... grad project.</p><pre class="codeinput"><span class="keyword">end</span>
+</pre><pre class="codeoutput">
+ans = 
+
+    Resolution: 0.09785512
+         XData: [1097758x1 single]
+         YData: [1097758x1 single]
+         ZData: [1097758x1 single]
+         Value: [1097758x1 double]
+
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2014a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+function [ voxels ] = main3dscanner(mode)
+% main3dscanner a script to deal and process 3dscanner data
+% Copyright : [YY] 2015
+% mechatronics Hims /Syria.
+
+%% Intro...
+%   هذا الملف يحتوي على آليات إعادة البناء من الصور المأخوذة لجسم على طاولة
+%   دوارة وحيث أن الاحداثيات معلومة سلفاً فيمكن حساب المصفوفات اللازمة بدقة
+%   ثم عبر خوارزمية " الشكل من الاطارات " يمكن اسقاط النقاط الافتراضية
+%   والنحت لكل الصور وما تبقى ينتمي حكماً للجسم , تزيد الدقة طبعاً بزيادة
+%   الصور وبزيادة كثافة النقاط , ولكن هذا يتطلب ذاكرة
+
+close all
+import spacecarving.*;
+
+% prase inputs
+if nargin<1
+    mode=1; % slow
+elseif strcmp(mode,'slow')
+    mode=1;
+elseif strcmp(mode,'fast')
+    mode=0;
+else
+    error('your input 4 cals mode invalid:please choose ,fast or slow .')
+end
+%% get the images or simulate one...
+
+[ im5 ] = simaqmec( );
+%[im5 ,time]=fpropose3(48,2,2.99);
+% 4D array of images.
+for y = 1:size(im5,4)
+    im5(:,:,:,y) = insertText(im5(:,:,:,y), [0.92*size(im5,2) 0], y,'FontSize', 18);  
+end
+% care here cause the segmentation could be affected.
+% however you could commit it away.
+figure;
+montage(im5)
+
+%% calculate the camera matrises and give the dimenssion (assumed fixed)
+% for the can:r=28
+%th2=38.15; % in degree
+%for jar1 r=25,z=21,th2=40.
+% th2=35;
+th2=44;
+% r=37.5;
+r=22;   % in cientemeter
+% put wherever the matrix are....
+s=load('K4cam.mat');
+camobject=s.k4lapcam ;%k4lapcam;
+[ cams ] = generatec43d( im5,th2,r,camobject );
+
+%% Convert the Images into Silhouettes
+
+% figure;
+% imshow(cams(1).Image);
+% h=imrect;
+% p = wait(h);
+% p=ceil(p);
+
+% p=roipoly(cams(1).Image);
+% close(gcf)
+  figure;
+for c=1:numel(cams)
+    cams(c).Silhouette = createMasksalt1( cams(c).Image );%segment3( cams(c).Image,p );
+    imshow(cams(c).Silhouette)
+    drawnow
+end
+    close(gcf)
+% makeFullAxes( gcf );
+
+%% Work out the space occupied by the scene
+% Initially we have no idea where to look for the model. We will assume
+% that the model lies in the space spanned by the cameras and their
+% principal view directions. We then perform a very low-res space-carve
+% using all the cameras to narrow down exactly where the object is. This
+% isn't foolproof, but good enough for this demo.
+z=25.5;
+
+[xlim,ylim,zlim] = findmodel3( cams );
+
+%% Create a Voxel Array
+% This creates a regular 3D grid of elements ready for carving away. The
+% input arguments set the bounding box and the approximate number of voxels
+% to create. Since the voxels must be cubes, the actual number generated
+% may be a little more or less. We'll start with about six million voxels
+% (you may need to reduce this if you don't have enough memory).
+%
+% For "real world" implementations of space carving you certainly wouldn't
+% create a uniform 3D matrix like this. OctTrees and other refinement
+% representations give much better efficiency, both in memory and
+% computational time.
+voxels = makevoxels( xlim, ylim, zlim, 3000000 );% here it was 6000000 [YY].
+starting_volume = numel( voxels.XData );
+
+% Show the whole scene
+disp('If u prefer to use the gui mannully u can do it here ')
+keyboard
+figure('color',[1 1 1],'Position',[100 100 800 550]);
+showscene2(cams)
+hold on
+p=[0 1 0];
+x=xlim(1);y=ylim(1);z=zlim(1);
+vx=diff(xlim);vy=diff(ylim);vz=diff(zlim);
+scatter3(x-(vx/8),y-(vy/8),z-(vz/8),50,[0 0 1],'fill')
+ver=[x y z;x+vx y z;x+vx y z+vz;x y z+vz;x y+vy z+vz;x y+vy z;x+vx y+vy z;x+vx y+vy z+vz];
+face=[1 2 3 4;1 4 5 6;1 2 7 6;2 7 8 3;6 7 8 5;5 4 3 8];
+patch('Vertices',ver,'Faces',face,'CData',p,'Facecolor',p,...
+    'FaceAlpha',0.9,'LineWidth',2);
+axis equal;axis vis3d
+clear x y z vx vy vz
+
+%showscene2( cams, voxels );
+drawnow()
+
+%% Now Start the active Carving
+% In this case we have 36 views (roughly every 10 degrees). For a very
+% detailed model and if you have an automatic capture rig you would use far
+% more - the only limit being time and disk-space. When using a computer
+% controlled turn-table (as is done in museums) storage is the only real
+% limitation.
+Waitingpro
+if mode==0
+    % fast processing..
+nod=1/(numel(cams)+1);
+for ii=1:numel(cams)
+    voxels = carve2( voxels, cams(ii) );
+    splsc.ProgressRatio=splsc.ProgressRatio+nod; % add to progress bar..
+end
+figure('Position',[100 100 700 500]);
+showsurface(voxels)
+set(gca,'Position',[0 0 1.4 0.95])
+axis off
+title( 'Result after carvings' )
+
+final_volume = numel( voxels.XData );
+fprintf( 'Final volume is %d (%1.2f%%)\n', ...
+    final_volume, 100 * final_volume / starting_volume )
+% drawnow()
+elseif mode==1 
+    % slow processing.
+nod=1/(numel(cams)*2+1);
+for ii=1:numel(cams)
+    voxels = carve2( voxels, cams(ii) );
+    splsc.ProgressRatio=splsc.ProgressRatio+nod; % add to progress bar..
+end
+figure('Position',[100 100 700 500]);
+showsurface(voxels)
+set(gca,'Position',[0 0 1.4 0.95])
+axis off
+title( 'Result after carvings' )
+final_volume = numel( voxels.XData );
+fprintf( 'Final volume is %d (%1.2f%%)\n', ...
+    final_volume, 100 * final_volume / starting_volume )
+drawnow()
+
+%% Get real values
+% We ideally want much higher resolution, but would run out of memory.
+% Instead we can use a trick and assign real values to each voxel instead
+% of a binary value. We do this by moving all voxels a third of a square in
+% each direction then seeing if they get carved off. The ratio of carved to
+% non-carved for each voxel gives its score (which is roughly equivalent to
+% estimating how much of the voxel is inside).
+offset_vec = 1/3 * voxels.Resolution * [-1 0 1];
+[off_x, off_y, off_z] = meshgrid( offset_vec, offset_vec, offset_vec );
+
+num_voxels = numel( voxels.Value );
+num_offsets = numel( off_x );
+scores = zeros( num_voxels, 1 );
+for jj=1:num_offsets
+    keep = true( num_voxels, 1 );
+    myvoxels = voxels;
+    myvoxels.XData = voxels.XData + off_x(jj);
+    myvoxels.YData = voxels.YData + off_y(jj);
+    myvoxels.ZData = voxels.ZData + off_z(jj);
+    for ii=1:numel( cams )
+        [~,mykeep] = carve2( myvoxels, cams(ii) );
+        keep(setdiff( 1:num_voxels, mykeep )) = false;
+        splsc.ProgressRatio=splsc.ProgressRatio+...
+            (nod/num_offsets); % add to progress bar..
+    end
+    scores(keep) = scores(keep) + 1;
+end
+voxels.Value = scores / num_offsets;
+figure('Position',[100 100 700 500]);
+showsurface( voxels );
+set(gca,'Position',[-0.2 0 1.4 0.95])
+axis off
+title( 'Result after carvings with refinement' )
+end
+%% Plot point-cloud
+
+% hf=figure('Position',[100 100 700 500]);
+% hax=axes('Parent',hf); hold on; grid on;
+% scatter3(voxels.XData,voxels.YData,voxels.ZData,1,[1 0 0],'fill')
+% 
+% xlabel('x-axis (mm)');ylabel('y-axis (mm)');zlabel('z-axis (mm)')
+% view(3);axis equal;
+% set(hax,'XAxisLocation','top','YAxisLocation','left',...
+%     'Ydir','reverse')
+% grid on
+% title('Reconstructed Point Cloud');
+
+%% Final Result
+% For online galleries and the like we would colour each voxel from the
+% image with the best view (i.e. nearest normal vector), leading to a
+% colour 3D model. This makes zero difference to the volume estimate (which
+% was the main purpose of the demo), but does look pretty!
+h=figure('color',[1 1 1],...
+     'NumberTitle','off','name','FResult','Position',[300   65   700   610]);
+
+ptch = showsurface( voxels );
+colorsurface( ptch, cams );
+set(gca,'Position',[-0.2 0 1.4 0.95])
+axis off
+title( 'Result after carvings with refinement and colour' )
+rotate3d on
+%% Rotate automatic around the object
+% for g=zlim(1):0.01:0
+% x=cos(g*6);
+% y=sin(g*6);
+% view([x,y,g])
+% pause(0.016)
+% end
+
+%% The End..
+% By : yasin yousif & his friends..
+% Supervisor: Dr Yasser Khadra.
+% Mechatronics 2015.... grad project.
+
+end
+
+
+##### SOURCE END #####
+--></body></html>
