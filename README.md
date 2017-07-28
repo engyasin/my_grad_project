@@ -1,14 +1,14 @@
 # my_grad_project
 3D-Reconstruction from images using shape from silhouettes 
 
-**By : **
+## By : 
 
 - Yasin Yousif
 - Murhaf Ksibie
 - Shadi Hamed
 
-**Supervisor: **
+## Supervisor:
 
-Dr-Yasser Khadra
+- Dr-Yasser Khadra
 
 At Al-Baath Univ : Mechatronics 2015
